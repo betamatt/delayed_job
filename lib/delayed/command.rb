@@ -31,6 +31,9 @@ module Delayed
         opts.on('-n', '--number_of_workers=workers', "Number of unique workers to spawn") do |worker_count|
           @worker_count = worker_count.to_i rescue 1
         end
+        opts.on('--no-single-log', "Don't combine logging into delayed_job.log") do
+          @options[:single_log] = false
+        end
       end
       @args = opts.parse!(args)
     end
@@ -59,7 +62,8 @@ module Delayed
       # Re-open file handles
       @files_to_reopen.each do |file|
         begin
-          file.reopen File.join(RAILS_ROOT, 'log', 'delayed_job.log'), 'a+'
+          target_log = @options[:single_log] ? File.join(RAILS_ROOT, 'log', 'delayed_job.log') : file.path
+          file.reopen target_log, 'w+'
           file.sync = true
         rescue ::Exception
         end
