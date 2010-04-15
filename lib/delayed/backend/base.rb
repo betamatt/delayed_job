@@ -72,6 +72,14 @@ module Delayed
         self.locked_by    = nil
       end
       
+      # Resets this job to a runnable state (note: not saved to DB)
+      def reset
+        self.attempts = 0
+        self.failed_at = nil
+        self.unlock
+        self.run_at = Time.current
+      end
+      
     private
 
       def deserialize(source)

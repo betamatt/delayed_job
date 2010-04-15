@@ -243,6 +243,28 @@ shared_examples_for 'a backend' do
     end
   end
   
+  context "reset" do
+    before(:each) do
+      @job = create_job(:locked_by => 'worker', :locked_at => 1.hour.ago, :attempts => 1, 
+        :failed_at => 1.hour.ago)
+      @job.reset
+    end
+    
+    it 'should unlock job' do
+      @job.locked_by.should be_nil
+      @job.locked_at.should be_nil
+    end
+    
+    it 'should clear failed status' do
+      @job.failed_at.should be_nil
+      @job.attempts.should == 0
+    end
+    
+    it 'should schedule the job for immediate execution' do
+      @job.run_at.should > 1.minute.ago 
+    end
+  end
+  
   context "large handler" do
     @@text = %{Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus eu vehicula augue. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Quisque odio lectus, volutpat sed dictum rutrum, interdum aliquam neque. Vivamus quis velit nisi, quis dictum purus. Duis magna nisi, faucibus nec molestie vitae, dictum eget odio. Nunc nulla mauris, vestibulum at dapibus nec, dapibus et lectus. Nullam sapien lacus, consectetur eget mattis in, rhoncus sed ipsum. Nullam nec nibh nisl. Integer ut erat in arcu feugiat semper. Nulla gravida sapien quam. Vestibulum pharetra elementum posuere. Fusce mattis justo auctor nibh facilisis vitae consectetur nibh vehicula.
 
