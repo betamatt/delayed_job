@@ -23,18 +23,25 @@ Jeweler::Tasks.new do |s|
   s.add_dependency "daemons"
   s.add_development_dependency "rspec"
   s.add_development_dependency "sqlite3-ruby"
+  s.add_development_dependency "activerecord"
   s.add_development_dependency "mongo_mapper"
   s.add_development_dependency "dm-core"
   s.add_development_dependency "dm-observer"
   s.add_development_dependency "dm-aggregates"
   s.add_development_dependency "dm-validations"
   s.add_development_dependency "do_sqlite3"
-  s.add_development_dependency "database_cleaner"
+  s.add_development_dependency "couchrest"
 end
 
 require 'spec/rake/spectask'
 
-task :default => :spec
+
+task :default do
+  %w(2.3.5 3.0.0.beta3).each do |version|
+    puts "Running specs with Rails #{version}"
+    system("RAILS_VERSION=#{version} rake -s spec;")
+  end
+end
 
 desc 'Run the specs'
 Spec::Rake::SpecTask.new(:spec) do |t|

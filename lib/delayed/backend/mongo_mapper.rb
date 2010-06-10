@@ -1,18 +1,14 @@
 require 'mongo_mapper'
 
-module ::MongoMapper
-  module Document
-    module ClassMethods
-      def load_for_delayed_job(id)
-        find!(id)
-      end
-    end
+MongoMapper::Document.class_eval do
+  yaml_as "tag:ruby.yaml.org,2002:MongoMapper"
+  
+  def self.yaml_new(klass, tag, val)
+    klass.find(val['_id'])
+  end
 
-    module InstanceMethods
-      def dump_for_delayed_job
-        "#{self.class};#{id}"
-      end
-    end
+  def to_yaml_properties
+    ['@_id']
   end
 end
 

@@ -41,17 +41,17 @@ describe Delayed::Backend::MongoMapper::Job do
     
     it "should ignore not found errors because they are permanent" do
       story = MongoStory.create :text => 'Once upon a time...'
-      job = story.send_later(:tell)
+      job = story.delay.tell
       story.destroy
       lambda { job.invoke_job }.should_not raise_error
     end
 
     it "should store the object as string" do
       story = MongoStory.create :text => 'Once upon a time...'
-      job = story.send_later(:tell)
+      job = story.delay.tell
 
       job.payload_object.class.should   == Delayed::PerformableMethod
-      job.payload_object.object.should  == "LOAD;MongoStory;#{story.id}"
+      job.payload_object.object.should  == story
       job.payload_object.method.should  == :tell
       job.payload_object.args.should    == []
       job.payload_object.perform.should == 'Once upon a time...'
@@ -59,10 +59,10 @@ describe Delayed::Backend::MongoMapper::Job do
 
     it "should store arguments as string" do
       story = MongoStory.create :text => 'Once upon a time...'
-      job = MongoStoryReader.new.send_later(:read, story)
+      job = MongoStoryReader.new.delay.read(story)
       job.payload_object.class.should   == Delayed::PerformableMethod
       job.payload_object.method.should  == :read
-      job.payload_object.args.should    == ["LOAD;MongoStory;#{story.id}"]
+      job.payload_object.args.should    == [story]
       job.payload_object.perform.should == 'Epilog: Once upon a time...'
     end
   end

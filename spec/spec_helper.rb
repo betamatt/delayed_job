@@ -4,6 +4,8 @@ require 'rubygems'
 require 'spec'
 require 'logger'
 
+gem 'activerecord', ENV['RAILS_VERSION'] if ENV['RAILS_VERSION']
+
 require 'delayed_job'
 require 'sample_jobs'
 
@@ -29,3 +31,6 @@ Dir.glob("#{File.dirname(__FILE__)}/setup/*.rb") do |backend|
 end
 
 Delayed::Worker.backend = BACKENDS.first
+
+# Add this directory so the ActiveSupport autoloading works
+ActiveSupport::Dependencies.load_paths << File.dirname(__FILE__)
