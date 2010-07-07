@@ -34,6 +34,9 @@ module Delayed
         opts.on('--no-single-log', "Don't combine logging into delayed_job.log") do
           @options[:single_log] = false
         end
+        opts.on('--sleep-delay', "Amount of time to sleep when no jobs are found") do |n|
+          @options[:sleep_delay] = n
+        end
       end
       @args = opts.parse!(args)
     end
