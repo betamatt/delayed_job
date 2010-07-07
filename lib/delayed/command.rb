@@ -34,6 +34,13 @@ module Delayed
         opts.on('--no-single-log', "Don't combine logging into delayed_job.log") do
           @options[:single_log] = false
         end
+        opts.on('--worker-index N',"The worker (out of '--number_of_workers') to launch.  Used to restart one out of some number of workers, as with a monit script") do |n|
+          @options[:worker_index] = n.to_i
+          if @options[:worker_index] > (@worker_count - 1)
+            STDERR.puts "The --worker_index can not exceed the --number_of_workers"
+            exit 1
+          end
+        end
         opts.on('--sleep-delay', "Amount of time to sleep when no jobs are found") do |n|
           @options[:sleep_delay] = n
         end
@@ -46,10 +53,18 @@ module Delayed
         @files_to_reopen << file unless file.closed?
       end
       
-      worker_count.times do |worker_index|
-        process_name = worker_count == 1 ? "delayed_job" : "delayed_job.#{worker_index}"
-        Daemons.run_proc(process_name, :dir => "#{RAILS_ROOT}/tmp/pids", :dir_mode => :normal, :ARGV => @args) do |*args|
+      if @options[:worker_index]
+        #We only run the one worker if we've specified the index property
+        process_name = worker_count == 1 ? "delayed_job" : "delayed_job.#{@options[:worker_index]}"
+        Daemons.run_proc(process_name, :dir => "#{RAILS_ROOT}/tmp/pids", :dir_mode => :normal, :ARGV => @args) do |* args|
           run process_name
+        end
+      else
+        worker_count.times do |worker_index|
+          process_name = worker_count == 1 ? "delayed_job" : "delayed_job.#{worker_index}"
+          Daemons.run_proc(process_name, :dir => "#{RAILS_ROOT}/tmp/pids", :dir_mode => :normal, :ARGV => @args) do |* args|
+            run process_name
+          end
         end
       end
     end
