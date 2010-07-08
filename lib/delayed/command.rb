@@ -34,12 +34,8 @@ module Delayed
         opts.on('--no-single-log', "Don't combine logging into delayed_job.log") do
           @options[:single_log] = false
         end
-        opts.on('--worker-index N',"The worker (out of '--number_of_workers') to launch.  Used to restart one out of some number of workers, as with a monit script") do |n|
+        opts.on('-i', '--worker-index N',"The numerical identifier or the worker.  Used to restart one out of some number of workers, as with a monit script") do |n|
           @options[:worker_index] = n.to_i
-          if @options[:worker_index] > (@worker_count - 1)
-            STDERR.puts "The --worker_index can not exceed the --number_of_workers"
-            exit 1
-          end
         end
         opts.on('--sleep-delay', "Amount of time to sleep when no jobs are found") do |n|
           @options[:sleep_delay] = n
