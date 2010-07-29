@@ -5,10 +5,12 @@ require 'active_support/core_ext/kernel'
 
 module Delayed
   class Worker
-    cattr_accessor :min_priority, :max_priority, :max_attempts, :max_run_time, :sleep_delay, :logger
+    cattr_accessor :min_priority, :max_priority, :max_attempts, :max_run_time, :sleep_delay,
+                   :backoff_multiplier, :logger
     self.sleep_delay = 5
     self.max_attempts = 25
     self.max_run_time = 4.hours
+    self.backoff_multiplier = 1
     
     # By default failed jobs are destroyed after too many attempts. If you want to keep them around
     # (perhaps to inspect the reason for the failure), set this to false.
@@ -133,7 +135,7 @@ module Delayed
     # Uses an exponential scale depending on the number of failed attempts.
     def reschedule(job, time = nil)
       if (job.attempts += 1) < self.class.max_attempts
-        time ||= Job.db_time_now + (job.attempts ** 4) + 5
+        time ||= Job.db_time_now + (self.class.backoff_multiplier * (job.attempts ** 4)) + 5
         job.run_at = time
         job.unlock
         job.save!

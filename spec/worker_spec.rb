@@ -126,6 +126,26 @@ describe Delayed::Worker do
           @job.run_at.should > Delayed::Job.db_time_now - 10.minutes
           @job.run_at.should < Delayed::Job.db_time_now + 10.minutes
         end
+        
+        describe 'with a backoff multiplier set' do
+          before(:each) do
+            @default_value = Delayed::Worker.backoff_multiplier
+            Delayed::Worker.backoff_multiplier = 10.minutes
+          end
+          
+          after(:each) do
+            Delayed::Worker.backoff_multiplier = @default_value
+          end
+          
+          it 'should set run_at to the current time plus the quadratically increasing backoff' do
+            @job.attempts = 2
+            @worker.run(@job)
+            @job.reload
+            
+            later = Delayed::Job.db_time_now + (10.minutes * (3 ** 4))
+            @job.run_at.should be_close(later, 10.seconds)
+          end
+        end
       end
   
       context "reschedule" do
